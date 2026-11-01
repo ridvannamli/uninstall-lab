@@ -13,7 +13,7 @@ public partial class MainWindow : Window
 
     private readonly CleanupExecutor _cleaner = new(
         new CleanupSystem(),
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "UninstallLab", "Backups"),
+        System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "UninstallLab", "Backups"),
         restorePoint: new RestorePointCreator());
 
     private IReadOnlyList<InstalledProgram> _all = Array.Empty<InstalledProgram>();
