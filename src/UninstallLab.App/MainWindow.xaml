@@ -7,6 +7,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <TextBlock Text="Yüklü programlar" FontSize="22" FontWeight="SemiBold" />
@@ -22,5 +23,11 @@
                 </GridView>
             </ListView.View>
         </ListView>
+
+        <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,8,0,0">
+            <CheckBox x:Name="DryRunBox" Content="Sadece göster (hiçbir şey kaldırma)"
+                      IsChecked="True" VerticalAlignment="Center" />
+            <Button Content="Kaldır" Margin="16,0,0,0" Padding="16,4" Click="Uninstall_Click" />
+        </StackPanel>
     </Grid>
 </Window>

@@ -2,7 +2,7 @@
 
 - [x] M0 İskelet: Core, App, Tests, CI
 - [x] M1 Yüklü programları listele: `IProgramSource` + registry gerçeklemesi (Platform.Windows), 32/64 bit + kullanıcı bazlı; Core'da ayrıştırma/süzme testleri
-- [ ] M2 Standart kaldırma: `UninstallString`/`QuietUninstallString` ayrıştırma, MSI (`msiexec /x`) desteği, süreç çalıştırma soyutlaması, dry-run
+- [x] M2 Standart kaldırma: `UninstallString`/`QuietUninstallString` ayrıştırma, MSI (`msiexec /x`) desteği, süreç çalıştırma soyutlaması, dry-run
 - [ ] M3 Kalıntı tarama: kural tabanlı (klasör, registry), risk puanı, korumalı yol listesi, önizleme raporu (silmeden)
 - [ ] M4 Güvenli temizlik: `.reg` yedeği, silme yürütücüsü, geri alma, geri yükleme noktası denemesi
 - [ ] M5 Toplu kaldırma

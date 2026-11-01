@@ -24,3 +24,8 @@ Yalnızca zamanlanmış görev veya kullanıcı "otonom" dediğinde geçerli. Di
 - Windows CI işi ücretsiz kotayı harcar: tur başına en fazla bir Windows çalışması tetikle (tek push).
 - Gerçek bir komut/CI kanıtı yoksa "tamamlandı" deme; doğrulanamayanı raporda yaz.
 - Rapor ve token kuralları: rules/01 ve rules/02.
+
+## Sürekli mod (kullanıcı istedi)
+- Kota/süre elverdiği sürece aşamalar arasında durma; her aşama: uygula, push, CI yeşil, PLAN/DURUM güncelle, sıradaki aşamaya geç.
+- Kullanıcıya soru sorma; önemli noktalarda (aşama bitti, çözülemeyen engel, plan bitti) tek satır PushNotification gönder.
+- Zamanlanmış tur, son commit 40 dk'dan yeniyse çalışmaz (çakışma önlemi).
