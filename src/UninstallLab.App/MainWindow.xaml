@@ -97,6 +97,37 @@
                     </WrapPanel>
                 </Grid>
             </TabItem>
+            <TabItem x:Name="ExtensionsTab" Header="Tarayıcı eklentileri">
+                <Grid Margin="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBox x:Name="ExtensionSearchBox" Margin="0,0,0,8" TextChanged="ExtensionSearchBox_TextChanged" />
+
+                    <ListView x:Name="ExtensionList" Grid.Row="1">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="Tarayıcı" Width="80" DisplayMemberBinding="{Binding Browser}" />
+                                <GridViewColumn Header="Ad" Width="260" DisplayMemberBinding="{Binding Name}" />
+                                <GridViewColumn Header="Sürüm" Width="80" DisplayMemberBinding="{Binding Version}" />
+                                <GridViewColumn Header="Durum" Width="60" DisplayMemberBinding="{Binding StateText}" />
+                                <GridViewColumn Header="Profil" Width="90" DisplayMemberBinding="{Binding Profile}" />
+                                <GridViewColumn Header="Kimlik" Width="300" DisplayMemberBinding="{Binding Id}" />
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+
+                    <WrapPanel Grid.Row="2" Margin="0,8,0,0">
+                        <Button Content="Tarayıcıda eklenti sayfasını aç" Margin="4" Padding="16,4" Click="ExtensionPage_Click" />
+                        <Button Content="Klasörü aç" Margin="4" Padding="16,4" Click="ExtensionFolder_Click" />
+                        <TextBlock Text="Kaldırmak için tarayıcının kendi eklenti sayfasını kullanın (çalışan tarayıcı ayarlarına dokunulmaz)."
+                                   Margin="12,0,0,0" VerticalAlignment="Center" Foreground="Gray" />
+                    </WrapPanel>
+                </Grid>
+            </TabItem>
         </TabControl>
 
         <CheckBox x:Name="DryRunBox" Grid.Row="2" IsChecked="True"

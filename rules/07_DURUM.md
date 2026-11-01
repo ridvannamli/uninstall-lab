@@ -1,20 +1,21 @@
 # Proje Durumu
 
 ## Mevcut aşama
-- M7 kodu yazıldı, CI bekleniyor. Sıradaki: `PLAN.md` M8.
+- M8 kodu yazıldı, CI bekleniyor. Sıradaki: `PLAN.md` M9.
 
 ## Tamamlananlar
-- M0-M6 CI yeşil: liste, kaldırma, kalıntı tarama, yedekli temizlik + geri alma, toplu kaldırma, Mağaza uygulamaları.
-- M7: Başlangıç sekmesi: Run anahtarları (HKCU, HKLM, WOW6432) ve Başlangıç klasörleri; açma/kapama StartupApproved ile (girdi silinmez, geri alınabilir); `StartupApproval`, `StartupFilter`, `StartupManager`, `RegistryStartupStore`.
+- M0-M7 CI yeşil: liste, kaldırma, kalıntı tarama, yedekli temizlik + geri alma, toplu kaldırma, Mağaza uygulamaları, başlangıç yöneticisi.
+- M8: Tarayıcı eklentileri sekmesi: Chrome/Edge/Brave (manifest + _locales ad çözümü) ve Firefox (extensions.json, yalnızca kullanıcı eklentileri) listeleme, arama; tarayıcının eklenti sayfasını/klasörünü açma. Çalışan tarayıcının ayar dosyalarına dokunulmaz.
 
 ## Son doğrulama
-- M0-M6: CI başarılı. M7: CI bekleniyor.
+- M0-M7: CI başarılı. M8: CI bekleniyor.
 
 ## Bilinen sorunlar
-- Container'da .NET SDK yok; doğrulama yalnızca CI'da. Gerçek Windows davranışı (kaldırma, temizlik, Get-AppxPackage, StartupApproved) elle denenmedi (SANDBOX'ta deneyin).
+- Container'da .NET SDK yok; doğrulama yalnızca CI'da. Gerçek Windows davranışı elle denenmedi (SANDBOX'ta deneyin).
+- Chromium eklenti açık/kapalı durumu okunmuyor (Durum "-").
 
 ## Sonraki aşama
-- M8: Tarayıcı eklentileri yöneticisi.
+- M9: Arayüz cilası, ayarlar, Inno Setup installer, sürüm etiketi.
 
 ## Son güncelleme
-- 2026-11-01: M7 uygulandı.
+- 2026-11-01: M8 uygulandı.

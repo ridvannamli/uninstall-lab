@@ -16,6 +16,9 @@ public partial class MainWindow : Window
     private readonly StartupManager _startup = new(new RegistryStartupStore());
     private IReadOnlyList<StartupEntry> _startupAll = Array.Empty<StartupEntry>();
     private bool _startupLoaded;
+    private readonly BrowserExtensionSource _extensionSource = new();
+    private IReadOnlyList<BrowserExtension> _extensionsAll = Array.Empty<BrowserExtension>();
+    private bool _extensionsLoaded;
 
     private readonly LeftoverScanner _scanner =
         new(new FileSystemProbe(), new RegistryProbe(), WindowsScanLocations.Default());
@@ -81,6 +84,70 @@ public partial class MainWindow : Window
         {
             _startupLoaded = true;
             await LoadStartupAsync();
+        }
+        else if (ReferenceEquals(Tabs.SelectedItem, ExtensionsTab) && !_extensionsLoaded)
+        {
+            _extensionsLoaded = true;
+            await LoadExtensionsAsync();
+        }
+    }
+
+    private async Task LoadExtensionsAsync()
+    {
+        try
+        {
+            _extensionsAll = await Task.Run(() => _extensionSource.GetExtensions());
+        }
+        catch (Exception ex)
+        {
+            _extensionsLoaded = false;
+            MessageBox.Show($"Eklentiler okunamadı: {ex.Message}");
+            return;
+        }
+
+        RefreshExtensions();
+    }
+
+    private void ExtensionSearchBox_TextChanged(object sender, TextChangedEventArgs e) => RefreshExtensions();
+
+    private void RefreshExtensions() =>
+        ExtensionList.ItemsSource = ExtensionFilter.Apply(_extensionsAll, ExtensionSearchBox.Text)
+            .Select(x => new ExtensionRow(x))
+            .ToList();
+
+    private void ExtensionPage_Click(object sender, RoutedEventArgs e)
+    {
+        if (ExtensionList.SelectedItem is not ExtensionRow row)
+        {
+            MessageBox.Show("Önce listeden bir eklenti seçin.");
+            return;
+        }
+
+        try
+        {
+            BrowserLauncher.OpenExtensionsPage(row.Extension.Browser);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Tarayıcı açılamadı: {ex.Message}");
+        }
+    }
+
+    private void ExtensionFolder_Click(object sender, RoutedEventArgs e)
+    {
+        if (ExtensionList.SelectedItem is not ExtensionRow row)
+        {
+            MessageBox.Show("Önce listeden bir eklenti seçin.");
+            return;
+        }
+
+        try
+        {
+            BrowserLauncher.OpenFolder(row.Extension.Path);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Klasör açılamadı: {ex.Message}");
         }
     }
 
