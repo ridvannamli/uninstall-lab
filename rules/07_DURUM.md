@@ -1,19 +1,19 @@
 # Proje Durumu
 
 ## Mevcut aşama
-- M0 tamamlandı (iskelet). Sıradaki: `PLAN.md` M1.
+- M1 kodu yazıldı, CI doğrulaması bekleniyor. Sıradaki: `PLAN.md` M2.
 
 ## Tamamlananlar
-- Repo iskeleti: Core, App, Tests, CI iş akışı, kurallar.
+- M0 iskelet; M1: `IProgramSource`, `UninstallEntryParser`, `ProgramFilter` (Core, testli), `RegistryProgramSource` (Platform.Windows, salt okunur), WPF liste + arama.
 
 ## Son doğrulama
-- Henüz yok. İlk CI çalışması bekleniyor (container'da .NET SDK yok).
+- M0: CI başarılı (Linux test + Windows build). M1: CI sonucu bekleniyor.
 
 ## Bilinen sorunlar
-- Yerel doğrulama için .NET SDK kurulumu engellendi; doğrulama CI'da yapılır.
+- Container'da .NET SDK yok; doğrulama yalnızca CI'da. Gerçek registry okuması Windows'ta elle denenmedi.
 
 ## Sonraki aşama
-- M1: Yüklü programları listele.
+- M2: Standart kaldırma (UninstallString ayrıştırma, MSI, süreç soyutlaması, dry-run).
 
 ## Son güncelleme
-- 2026-11-01: İskelet oluşturuldu.
+- 2026-11-01: M1 uygulandı.
