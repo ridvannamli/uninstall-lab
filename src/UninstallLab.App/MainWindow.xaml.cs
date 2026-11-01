@@ -8,6 +8,9 @@ namespace UninstallLab.App;
 public partial class MainWindow : Window
 {
     private readonly UninstallService _uninstaller = new(new ProcessRunner());
+    private readonly LeftoverScanner _scanner =
+        new(new FileSystemProbe(), new RegistryProbe(), WindowsScanLocations.Default());
+
     private IReadOnlyList<InstalledProgram> _all = Array.Empty<InstalledProgram>();
 
     public MainWindow()
@@ -47,6 +50,21 @@ public partial class MainWindow : Window
         MessageBox.Show(Describe(result));
 
         if (!dryRun && result.Success) await LoadAsync();
+    }
+
+    private async void Scan_Click(object sender, RoutedEventArgs e)
+    {
+        if (ProgramList.SelectedItem is not InstalledProgram program)
+        {
+            MessageBox.Show("Önce listeden bir program seçin.");
+            return;
+        }
+
+        var items = await Task.Run(() => _scanner.Scan(program));
+        var text = items.Count == 0
+            ? "Kalıntı bulunamadı."
+            : string.Join("\n", items.Take(40).Select(i => $"[risk {i.Risk}] {i.Path}"));
+        MessageBox.Show(text + "\n\n(Yalnızca tarama: hiçbir şey silinmedi.)", "Kalıntı raporu");
     }
 
     private static string Describe(UninstallResult r)

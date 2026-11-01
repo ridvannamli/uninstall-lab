@@ -28,6 +28,7 @@
             <CheckBox x:Name="DryRunBox" Content="Sadece göster (hiçbir şey kaldırma)"
                       IsChecked="True" VerticalAlignment="Center" />
             <Button Content="Kaldır" Margin="16,0,0,0" Padding="16,4" Click="Uninstall_Click" />
+            <Button Content="Kalıntıları tara" Margin="8,0,0,0" Padding="16,4" Click="Scan_Click" />
         </StackPanel>
     </Grid>
 </Window>

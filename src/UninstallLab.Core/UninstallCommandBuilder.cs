@@ -13,7 +13,7 @@ public static class UninstallCommandBuilder
         if (string.IsNullOrWhiteSpace(raw)) return null;
 
         var (file, args) = Split(raw.Trim());
-        var name = LastSegment(file);
+        var name = PathText.LastSegment(file);
         var isMsi = name.Equals("msiexec.exe", StringComparison.OrdinalIgnoreCase)
                     || name.Equals("msiexec", StringComparison.OrdinalIgnoreCase);
 
@@ -45,12 +45,5 @@ public static class UninstallCommandBuilder
 
         var space = raw.IndexOf(' ');
         return space < 0 ? (raw, string.Empty) : (raw[..space], raw[(space + 1)..].Trim());
-    }
-
-    // Platformdan bağımsız dosya adı (Linux testlerinde '\' ayırıcıdır).
-    private static string LastSegment(string path)
-    {
-        var i = Math.Max(path.LastIndexOf('\\'), path.LastIndexOf('/'));
-        return i < 0 ? path : path[(i + 1)..];
     }
 }
