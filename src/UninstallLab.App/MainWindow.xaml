@@ -68,6 +68,35 @@
                     </WrapPanel>
                 </Grid>
             </TabItem>
+            <TabItem x:Name="StartupTab" Header="Başlangıç programları">
+                <Grid Margin="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBox x:Name="StartupSearchBox" Margin="0,0,0,8" TextChanged="StartupSearchBox_TextChanged" />
+
+                    <ListView x:Name="StartupList" Grid.Row="1">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="Ad" Width="220" DisplayMemberBinding="{Binding Name}" />
+                                <GridViewColumn Header="Durum" Width="70" DisplayMemberBinding="{Binding StateText}" />
+                                <GridViewColumn Header="Kaynak" Width="150" DisplayMemberBinding="{Binding SourceText}" />
+                                <GridViewColumn Header="Komut" Width="440" DisplayMemberBinding="{Binding Command}" />
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+
+                    <WrapPanel Grid.Row="2" Margin="0,8,0,0">
+                        <Button Content="Devre dışı bırak" Margin="4" Padding="16,4" Click="StartupDisable_Click" />
+                        <Button Content="Etkinleştir" Margin="4" Padding="16,4" Click="StartupEnable_Click" />
+                        <TextBlock Text="Girdi silinmez; istediğiniz zaman yeniden açılabilir." Margin="12,0,0,0"
+                                   VerticalAlignment="Center" Foreground="Gray" />
+                    </WrapPanel>
+                </Grid>
+            </TabItem>
         </TabControl>
 
         <CheckBox x:Name="DryRunBox" Grid.Row="2" IsChecked="True"

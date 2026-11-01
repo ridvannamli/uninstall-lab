@@ -13,6 +13,9 @@ public partial class MainWindow : Window
     private readonly StoreAppService _storeService = new(new PowerShellStoreAppRemover());
     private IReadOnlyList<StoreApp> _storeApps = Array.Empty<StoreApp>();
     private bool _storeLoaded;
+    private readonly StartupManager _startup = new(new RegistryStartupStore());
+    private IReadOnlyList<StartupEntry> _startupAll = Array.Empty<StartupEntry>();
+    private bool _startupLoaded;
 
     private readonly LeftoverScanner _scanner =
         new(new FileSystemProbe(), new RegistryProbe(), WindowsScanLocations.Default());
@@ -67,11 +70,64 @@ public partial class MainWindow : Window
     private async void Tabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         // ListView seçimleri de buraya kabarcıklanır; yalnızca sekme değişimine tepki ver.
-        if (!ReferenceEquals(e.OriginalSource, Tabs) || !ReferenceEquals(Tabs.SelectedItem, StoreTab) || _storeLoaded)
-            return;
+        if (!ReferenceEquals(e.OriginalSource, Tabs)) return;
 
-        _storeLoaded = true;
-        await LoadStoreAsync();
+        if (ReferenceEquals(Tabs.SelectedItem, StoreTab) && !_storeLoaded)
+        {
+            _storeLoaded = true;
+            await LoadStoreAsync();
+        }
+        else if (ReferenceEquals(Tabs.SelectedItem, StartupTab) && !_startupLoaded)
+        {
+            _startupLoaded = true;
+            await LoadStartupAsync();
+        }
+    }
+
+    private async Task LoadStartupAsync()
+    {
+        try
+        {
+            _startupAll = await Task.Run(() => _startup.List());
+        }
+        catch (Exception ex)
+        {
+            _startupLoaded = false;
+            MessageBox.Show($"Başlangıç girdileri okunamadı: {ex.Message}");
+            return;
+        }
+
+        RefreshStartup();
+    }
+
+    private void StartupSearchBox_TextChanged(object sender, TextChangedEventArgs e) => RefreshStartup();
+
+    private void RefreshStartup() =>
+        StartupList.ItemsSource = StartupFilter.Apply(_startupAll, StartupSearchBox.Text)
+            .Select(entry => new StartupRow(entry))
+            .ToList();
+
+    private async void StartupDisable_Click(object sender, RoutedEventArgs e) => await ToggleStartupAsync(false);
+
+    private async void StartupEnable_Click(object sender, RoutedEventArgs e) => await ToggleStartupAsync(true);
+
+    private async Task ToggleStartupAsync(bool enable)
+    {
+        if (StartupList.SelectedItem is not StartupRow row)
+        {
+            MessageBox.Show("Önce listeden bir girdi seçin.");
+            return;
+        }
+
+        var result = await Task.Run(() => _startup.SetEnabled(row.Entry, enable));
+        if (!result.Success)
+        {
+            MessageBox.Show($"Başarısız: {result.Error}");
+            return;
+        }
+
+        _startupAll = await Task.Run(() => _startup.List());
+        RefreshStartup();
     }
 
     private async Task LoadStoreAsync()

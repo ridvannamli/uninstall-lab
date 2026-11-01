@@ -7,6 +7,6 @@
 - [x] M4 Güvenli temizlik: `.reg` yedeği, silme yürütücüsü, geri alma, geri yükleme noktası denemesi
 - [x] M5 Toplu kaldırma
 - [x] M6 Windows Store (UWP) uygulamaları (PowerShell `Get-AppxPackage`)
-- [ ] M7 Başlangıç programları yöneticisi
+- [x] M7 Başlangıç programları yöneticisi
 - [ ] M8 Tarayıcı eklentileri yöneticisi
 - [ ] M9 Arayüz cilası, ayarlar, Inno Setup installer, sürüm etiketi
