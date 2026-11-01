@@ -1,20 +1,20 @@
 # Proje Durumu
 
 ## Mevcut aşama
-- M3 kodu yazıldı, CI bekleniyor. Sıradaki: `PLAN.md` M4.
+- M4 kodu yazıldı, CI bekleniyor. Sıradaki: `PLAN.md` M5.
 
 ## Tamamlananlar
-- M0 iskelet, M1 program listesi, M2 standart kaldırma (dry-run varsayılan, CI yeşil).
-- M3: `LeftoverScanner` (klasör + registry, ad/yayıncı eşleşmesi, risk 20/60), `ProtectedPaths` (sistem yolları/anahtarları korumalı), `NameNormalizer`, Windows probe'ları, arayüzde "Kalıntıları tara" (yalnızca rapor, silme yok).
+- M0-M3 (iskelet, liste, standart kaldırma, kalıntı tarama) CI yeşil.
+- M4: `CleanupExecutor` (dry-run varsayılan, yalnızca düşük risk, korumalı yollar atlanır, klasör→yedek konuma taşı, registry→.reg yedek sonra sil, manifest, `Undo`, geri yükleme noktası denemesi), Windows gerçeklemesi (`CleanupSystem`, `RestorePointCreator`), arayüzde "Kalıntıları temizle" ve "Son temizliği geri al".
 
 ## Son doğrulama
-- M0-M2: CI başarılı. M3: CI bekleniyor.
+- M0-M3: CI başarılı. M4: CI bekleniyor.
 
 ## Bilinen sorunlar
-- Container'da .NET SDK yok; doğrulama yalnızca CI'da. Gerçek registry/dosya taraması Windows'ta elle denenmedi (sandbox önerilir).
+- Container'da .NET SDK yok; doğrulama yalnızca CI'da. Gerçek taşıma/registry silme/geri alma Windows'ta elle denenmedi (SANDBOX'ta deneyin, gerçek bilgisayarda değil).
 
 ## Sonraki aşama
-- M4: Güvenli temizlik (.reg yedeği, silme yürütücüsü, geri alma, geri yükleme noktası). Silme yalnızca yedek + onay + dry-run varsayılanıyla.
+- M5: Toplu kaldırma.
 
 ## Son güncelleme
-- 2026-11-01: M3 uygulandı.
+- 2026-11-01: M4 uygulandı.
