@@ -1,10 +1,11 @@
 # Proje Durumu
 
 ## Mevcut aşama
-- M0-M9 bitti. Kullanıcı isteğiyle ek iş (M10): Yenile + kaldırma sonrası kalıntı penceresi. CI bekleniyor.
+- M0-M10 bitti. M11 (kullanıcı isteği): otomatik kalıntı temizliği + uygulama simgesi. CI bekleniyor.
 
 ## Tamamlananlar
 - M0-M9 CI yeşil (liste, kaldırma, kalıntı tarama, yedekli temizlik + geri alma, toplu kaldırma, Mağaza, başlangıç, tarayıcı eklentileri, ayarlar, installer).
+- M11: kaldırma sonrası güvenli kalıntılar otomatik temizlenir (AutoCleanLeftovers), uygulama simgesi (Assets/app.ico) exe/pencere/installer.
 - M10: sağ tık "Yenile (F5)" (tüm listeler); kaldırma ve toplu kaldırma sonrası otomatik kalıntı penceresi (klasör/registry yolları, risk, neden, onay kutuları, canlı silme günlüğü); tarayıcıdan InstallLocation, yayıncı\program iç içe klasör/anahtar tarama; AppData/kullanıcı profili korumaları.
 
 ## Son doğrulama

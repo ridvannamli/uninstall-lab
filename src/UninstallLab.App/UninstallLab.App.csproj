@@ -13,7 +13,12 @@
     <Authors>Rıdvan Namlı</Authors>
     <Copyright>Copyright (c) 2026 Rıdvan Namlı</Copyright>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\app.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\UninstallLab.Core\UninstallLab.Core.csproj" />

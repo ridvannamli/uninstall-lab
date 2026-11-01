@@ -36,6 +36,14 @@ public class AppSettingsTests
     }
 
     [Fact]
+    public void AutoCleanLeftovers_DefaultsToTrue_AndCanBeDisabled()
+    {
+        Assert.True(AppSettings.Default.AutoCleanLeftovers);
+        Assert.True(AppSettingsSerializer.Deserialize("{\"QuietByDefault\":true}").AutoCleanLeftovers);
+        Assert.False(AppSettingsSerializer.Deserialize("{\"AutoCleanLeftovers\":false}").AutoCleanLeftovers);
+    }
+
+    [Fact]
     public void Deserialize_Bom_IsIgnored()
     {
         Assert.True(AppSettingsSerializer.Deserialize("﻿{\"ShowSystemStoreApps\":true}").ShowSystemStoreApps);

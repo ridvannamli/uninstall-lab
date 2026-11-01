@@ -15,3 +15,5 @@
 - Kaldırma sonrası kalıntı penceresi: yollar listelenir, düşük riskli olanlar önceden seçili, silme adımları canlı günlükte; liste yenilenince hâlâ yüklü görünen programa uyarı. Dry-run'da otomatik tarama yok (program hâlâ yüklü).
 - InstallLocation yalnızca bilinen kök klasörlerin (Program Files, ProgramData, AppData...) ALTINDAYSA, korumalı değilse ve hâlâ varsa kalıntı sayılır (AppData\Local gibi üst klasörlerin taşınmasını engellemek için).
 - Sağ tık "Yenile" ve F5: etkin sekmeyi yeniden okur.
+- Kaldırma sonrası düşük riskli kalıntılar OTOMATİK (yedekli) temizlenir (ayar: AutoCleanLeftovers, varsayılan açık); yalnızca artık listede olmayan programlar için, gerçek modda. Hâlâ yüklü görünen programa ve onunla ortak yollara asla otomatik dokunulmaz (LeftoverPlanner). Riskli öğeler listede kalır, elle seçilir.
+- Uygulama simgesi: kullanıcı görselinden kırpılıp üretilen çok boyutlu .ico (16-256 px); exe, pencereler ve installer'da kullanılır.

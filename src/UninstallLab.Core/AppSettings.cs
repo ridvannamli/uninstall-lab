@@ -5,7 +5,11 @@ namespace UninstallLab.Core;
 /// <summary>
 /// Kullanıcı ayarları. Güvenlik için "Sadece göster" (dry-run) her açılışta açık başlar ve kalıcı olarak kapatılamaz.
 /// </summary>
-public sealed record AppSettings(bool QuietByDefault = false, bool ShowSystemStoreApps = false)
+/// <param name="AutoCleanLeftovers">Kaldırma sonrası düşük riskli kalıntıları otomatik (yedekli) temizler.</param>
+public sealed record AppSettings(
+    bool QuietByDefault = false,
+    bool ShowSystemStoreApps = false,
+    bool AutoCleanLeftovers = true)
 {
     public static AppSettings Default { get; } = new();
 }

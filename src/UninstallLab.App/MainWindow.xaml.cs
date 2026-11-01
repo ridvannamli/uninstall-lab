@@ -42,9 +42,11 @@ public partial class MainWindow : Window
         var settings = SettingsFile.Load();
         QuietBox.IsChecked = settings.QuietByDefault;
         ShowSystemBox.IsChecked = settings.ShowSystemStoreApps;
+        AutoCleanBox.IsChecked = settings.AutoCleanLeftovers;
         Closing += (_, _) => SettingsFile.Save(new AppSettings(
             QuietByDefault: QuietBox.IsChecked == true,
-            ShowSystemStoreApps: ShowSystemBox.IsChecked == true));
+            ShowSystemStoreApps: ShowSystemBox.IsChecked == true,
+            AutoCleanLeftovers: AutoCleanBox.IsChecked == true));
         Loaded += async (_, _) => await LoadAsync();
     }
 
@@ -82,7 +84,7 @@ public partial class MainWindow : Window
         {
             await LoadAsync();
             // Kaldırma sonrası otomatik kalıntı taraması: yollar listelenir, seçilenler canlı günlükle temizlenir.
-            await ShowLeftoversAsync(new[] { program }, program.Name);
+            await ShowLeftoversAsync(new[] { program }, program.Name, autoClean: true);
         }
     }
 
@@ -304,7 +306,7 @@ public partial class MainWindow : Window
         var removed = results.Where(r => r.Result.Success).Select(r => r.Program).ToList();
         await LoadAsync();
         if (removed.Count > 0)
-            await ShowLeftoversAsync(removed, removed.Count == 1 ? removed[0].Name : $"{removed.Count} program");
+            await ShowLeftoversAsync(removed, removed.Count == 1 ? removed[0].Name : $"{removed.Count} program", autoClean: true);
     }
 
     private async void Scan_Click(object sender, RoutedEventArgs e)
@@ -319,24 +321,28 @@ public partial class MainWindow : Window
         await ShowLeftoversAsync(selected, selected.Count == 1 ? selected[0].Name : $"{selected.Count} program");
     }
 
-    /// <summary>Programların kalıntılarını tarar ve yolları listeleyen pencereyi açar.</summary>
-    private async Task ShowLeftoversAsync(IReadOnlyList<InstalledProgram> programs, string title)
+    private bool IsStillInstalled(InstalledProgram p) =>
+        _all.Any(a => a.Name == p.Name && a.Version == p.Version);
+
+    /// <summary>
+    /// Programların kalıntılarını tarar ve yolları listeleyen pencereyi açar. <paramref name="autoClean"/> açıksa
+    /// (kaldırma sonrası), gerçek modda ve ayar açıkken, artık listede olmayan programların düşük riskli kalıntıları
+    /// pencere açılır açılmaz yedekli olarak temizlenir. Hâlâ yüklü görünen programa asla otomatik dokunulmaz.
+    /// </summary>
+    private async Task ShowLeftoversAsync(IReadOnlyList<InstalledProgram> programs, string title, bool autoClean = false)
     {
-        var items = await Task.Run(() => programs
-            .SelectMany(p => _scanner.Scan(p))
-            .GroupBy(i => (i.Kind, Path: i.Path.ToLowerInvariant()))
-            .Select(g => g.OrderBy(i => i.Risk).First())
-            .OrderBy(i => i.Risk)
-            .ThenBy(i => i.Path, StringComparer.OrdinalIgnoreCase)
+        var scans = await Task.Run(() => programs
+            .Select(p => new ProgramScan(p, _scanner.Scan(p), IsStillInstalled(p)))
             .ToList());
 
-        // Liste yenilendikten sonra hâlâ görünen program, kaldırılmamış demektir; kullanıcı uyarılır.
-        var stillInstalled = programs
-            .Where(p => _all.Any(a => a.Name == p.Name && a.Version == p.Version))
-            .Select(p => p.Name)
-            .ToList();
+        var all = LeftoverPlanner.Combine(scans);
+        var stillNames = scans.Where(s => s.StillInstalled).Select(s => s.Program.Name).ToList();
 
-        var window = new LeftoverWindow(title, items, _cleaner, DryRunBox.IsChecked == true, stillInstalled)
+        IReadOnlyList<LeftoverItem> auto = autoClean && DryRunBox.IsChecked != true && AutoCleanBox.IsChecked == true
+            ? LeftoverPlanner.AutoCleanSet(scans)
+            : Array.Empty<LeftoverItem>();
+
+        var window = new LeftoverWindow(title, all, auto, _cleaner, DryRunBox.IsChecked == true, stillNames)
         {
             Owner = this,
         };
