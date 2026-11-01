@@ -1,20 +1,20 @@
 # Proje Durumu
 
 ## Mevcut aşama
-- M5 kodu yazıldı, CI bekleniyor. Sıradaki: `PLAN.md` M6.
+- M6 kodu yazıldı, CI bekleniyor. Sıradaki: `PLAN.md` M7.
 
 ## Tamamlananlar
-- M0-M4 CI yeşil: liste, standart kaldırma, kalıntı tarama, yedekli temizlik + geri alma.
-- M5: `BatchUninstaller` (sıralı, hata sonrakini durdurmaz, iptal, ilerleme), arayüzde çoklu seçim + "Seçilenleri toplu kaldır" + "Sessiz kaldır".
+- M0-M5 CI yeşil: liste, kaldırma, kalıntı tarama, yedekli temizlik + geri alma, toplu kaldırma.
+- M6: Mağaza uygulamaları sekmesi: `StoreAppParser` (PowerShell JSON), `StoreAppFilter` (çatı/sistem paketleri gizli), `StoreAppValidator` (paket adı doğrulama, enjeksiyon koruması), `StoreAppService` (dry-run), `PowerShellStoreAppSource/Remover`.
 
 ## Son doğrulama
-- M0-M4: CI başarılı. M5: CI bekleniyor.
+- M0-M5: CI başarılı. M6: CI bekleniyor.
 
 ## Bilinen sorunlar
-- Container'da .NET SDK yok; doğrulama yalnızca CI'da. Gerçek kaldırma/temizleme/geri alma Windows'ta elle denenmedi (SANDBOX'ta deneyin).
+- Container'da .NET SDK yok; doğrulama yalnızca CI'da. Gerçek kaldırma/temizleme/Get-AppxPackage Windows'ta elle denenmedi (SANDBOX'ta deneyin).
 
 ## Sonraki aşama
-- M6: Windows Store (UWP) uygulamaları.
+- M7: Başlangıç programları yöneticisi.
 
 ## Son güncelleme
-- 2026-11-01: M5 uygulandı.
+- 2026-11-01: M6 uygulandı.

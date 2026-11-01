@@ -9,6 +9,10 @@ public partial class MainWindow : Window
 {
     private readonly UninstallService _uninstaller = new(new ProcessRunner());
     private readonly BatchUninstaller _batch;
+    private readonly PowerShellStoreAppSource _storeSource = new();
+    private readonly StoreAppService _storeService = new(new PowerShellStoreAppRemover());
+    private IReadOnlyList<StoreApp> _storeApps = Array.Empty<StoreApp>();
+    private bool _storeLoaded;
 
     private readonly LeftoverScanner _scanner =
         new(new FileSystemProbe(), new RegistryProbe(), WindowsScanLocations.Default());
@@ -58,6 +62,61 @@ public partial class MainWindow : Window
         MessageBox.Show(Describe(result));
 
         if (!dryRun && result.Success) await LoadAsync();
+    }
+
+    private async void Tabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        // ListView seçimleri de buraya kabarcıklanır; yalnızca sekme değişimine tepki ver.
+        if (!ReferenceEquals(e.OriginalSource, Tabs) || !ReferenceEquals(Tabs.SelectedItem, StoreTab) || _storeLoaded)
+            return;
+
+        _storeLoaded = true;
+        await LoadStoreAsync();
+    }
+
+    private async Task LoadStoreAsync()
+    {
+        try
+        {
+            _storeApps = await _storeSource.GetAppsAsync();
+        }
+        catch (Exception ex)
+        {
+            _storeLoaded = false;
+            MessageBox.Show($"Mağaza uygulamaları okunamadı: {ex.Message}");
+            return;
+        }
+
+        RefreshStore();
+    }
+
+    private void StoreSearchBox_TextChanged(object sender, TextChangedEventArgs e) => RefreshStore();
+
+    private void RefreshStore() =>
+        StoreList.ItemsSource = StoreAppFilter.Apply(_storeApps, StoreSearchBox.Text);
+
+    private async void StoreRemove_Click(object sender, RoutedEventArgs e)
+    {
+        if (StoreList.SelectedItem is not StoreApp app)
+        {
+            MessageBox.Show("Önce listeden bir uygulama seçin.");
+            return;
+        }
+
+        var dryRun = DryRunBox.IsChecked == true;
+        if (!dryRun)
+        {
+            var answer = MessageBox.Show($"'{app.Name}' kaldırılsın mı?", "Onay",
+                MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            if (answer != MessageBoxResult.Yes) return;
+        }
+
+        var result = await _storeService.RemoveAsync(app, dryRun);
+        MessageBox.Show(!result.Success
+            ? $"Başarısız: {result.Error}"
+            : result.DryRun ? $"Çalıştırılacak komut:\n{result.Command}" : "Kaldırıldı.");
+
+        if (!dryRun && result.Success) await LoadStoreAsync();
     }
 
     private async void Batch_Click(object sender, RoutedEventArgs e)
