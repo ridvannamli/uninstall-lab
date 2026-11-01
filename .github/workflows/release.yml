@@ -1,0 +1,67 @@
+name: release
+
+# Installer'ı üretir. `dev`'de yalnızca installer/iş akışı değişince çalışır (kota tasarrufu).
+# `v*` etiketi itilirse ayrıca TASLAK ve ön sürüm olarak GitHub Release oluşturur (yayınlamayı siz yaparsınız).
+on:
+  push:
+    branches: [dev]
+    paths: ['installer/**', '.github/workflows/release.yml']
+    tags: ['v*']
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  package:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Sürüm
+        id: ver
+        shell: pwsh
+        run: |
+          if ($env:GITHUB_REF -like 'refs/tags/v*') { $v = $env:GITHUB_REF_NAME.TrimStart('v') } else { $v = '0.0.0-dev' }
+          "version=$v" >> $env:GITHUB_OUTPUT
+
+      - name: Testler
+        run: dotnet test tests/UninstallLab.Core.Tests --nologo -v q
+
+      - name: Yayınla (kendi içinde .NET, tek dosya)
+        run: >
+          dotnet publish src/UninstallLab.App -c Release -r win-x64 --self-contained true
+          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:Version=${{ steps.ver.outputs.version }} -o publish --nologo -v q
+
+      - name: Inno Setup ile installer
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress }
+          & $iscc "/DAppVersion=${{ steps.ver.outputs.version }}" installer\UninstallLab.iss
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: uninstall-lab-installer
+          path: dist/*.exe
+          retention-days: 14
+
+      - name: Taslak sürüm oluştur (yalnızca etiket)
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $files = (Get-ChildItem dist -Filter *.exe).FullName
+          gh release create $env:GITHUB_REF_NAME $files --draft --prerelease `
+            --title "Uninstall Lab $env:GITHUB_REF_NAME" `
+            --notes "Ön sürüm. Önce Windows Sandbox veya sanal makinede deneyin. Kaldırma ve temizlik işlemleri sisteminizi değiştirir."

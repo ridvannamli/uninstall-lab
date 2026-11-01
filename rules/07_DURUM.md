@@ -1,21 +1,23 @@
 # Proje Durumu
 
 ## Mevcut aşama
-- M8 kodu yazıldı, CI bekleniyor. Sıradaki: `PLAN.md` M9.
+- M9 kodu yazıldı, CI ve release iş akışı doğrulaması bekleniyor. PLAN.md tamamlandı (M0-M9).
 
 ## Tamamlananlar
-- M0-M7 CI yeşil: liste, kaldırma, kalıntı tarama, yedekli temizlik + geri alma, toplu kaldırma, Mağaza uygulamaları, başlangıç yöneticisi.
-- M8: Tarayıcı eklentileri sekmesi: Chrome/Edge/Brave (manifest + _locales ad çözümü) ve Firefox (extensions.json, yalnızca kullanıcı eklentileri) listeleme, arama; tarayıcının eklenti sayfasını/klasörünü açma. Çalışan tarayıcının ayar dosyalarına dokunulmaz.
+- M0-M8 CI yeşil: liste, kaldırma, kalıntı tarama, yedekli temizlik + geri alma, toplu kaldırma, Mağaza uygulamaları, başlangıç yöneticisi, tarayıcı eklentileri.
+- M9: `AppSettings` (QuietByDefault, ShowSystemStoreApps; dry-run kalıcı kapatılamaz), Hakkında, app.manifest (highestAvailable), sürüm 0.1.0, exe adı UninstallLab.exe, Inno Setup betiği, `release.yml` (installer + etiketle taslak release), README.
 
 ## Son doğrulama
-- M0-M7: CI başarılı. M8: CI bekleniyor.
+- M0-M8: CI başarılı. M9: CI ve release.yml bekleniyor.
 
 ## Bilinen sorunlar
-- Container'da .NET SDK yok; doğrulama yalnızca CI'da. Gerçek Windows davranışı elle denenmedi (SANDBOX'ta deneyin).
-- Chromium eklenti açık/kapalı durumu okunmuyor (Durum "-").
+- Hiçbir kod Windows'ta elle çalıştırılmadı; yalnızca CI derleme + Core birim testleri doğrulandı. SANDBOX'ta deneyin.
+- Chromium eklenti açık/kapalı durumu okunmuyor.
+- GitHub release için etiket (örn. v0.1.0) elle itilmeli; yalnızca taslak ön sürüm oluşur.
 
-## Sonraki aşama
-- M9: Arayüz cilası, ayarlar, Inno Setup installer, sürüm etiketi.
+## Sonraki adım
+- Kullanıcı: sandbox testi (artifact'ı indir, dry-run ile dene), sorunları bildir.
+- Plan bitti: zamanlanmış görev kapatılabilir.
 
 ## Son güncelleme
-- 2026-11-01: M8 uygulandı.
+- 2026-11-01: M9 uygulandı.

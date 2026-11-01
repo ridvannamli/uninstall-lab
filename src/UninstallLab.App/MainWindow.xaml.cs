@@ -23,9 +23,12 @@ public partial class MainWindow : Window
     private readonly LeftoverScanner _scanner =
         new(new FileSystemProbe(), new RegistryProbe(), WindowsScanLocations.Default());
 
+    private static readonly string BackupRoot = System.IO.Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "UninstallLab", "Backups");
+
     private readonly CleanupExecutor _cleaner = new(
         new CleanupSystem(),
-        System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "UninstallLab", "Backups"),
+        BackupRoot,
         restorePoint: new RestorePointCreator());
 
     private IReadOnlyList<InstalledProgram> _all = Array.Empty<InstalledProgram>();
@@ -34,6 +37,13 @@ public partial class MainWindow : Window
     {
         _batch = new BatchUninstaller(_uninstaller);
         InitializeComponent();
+
+        var settings = SettingsFile.Load();
+        QuietBox.IsChecked = settings.QuietByDefault;
+        ShowSystemBox.IsChecked = settings.ShowSystemStoreApps;
+        Closing += (_, _) => SettingsFile.Save(new AppSettings(
+            QuietByDefault: QuietBox.IsChecked == true,
+            ShowSystemStoreApps: ShowSystemBox.IsChecked == true));
         Loaded += async (_, _) => await LoadAsync();
     }
 
@@ -216,7 +226,20 @@ public partial class MainWindow : Window
     private void StoreSearchBox_TextChanged(object sender, TextChangedEventArgs e) => RefreshStore();
 
     private void RefreshStore() =>
-        StoreList.ItemsSource = StoreAppFilter.Apply(_storeApps, StoreSearchBox.Text);
+        StoreList.ItemsSource = StoreAppFilter.Apply(_storeApps, StoreSearchBox.Text, ShowSystemBox.IsChecked == true);
+
+    private void ShowSystem_Changed(object sender, RoutedEventArgs e) => RefreshStore();
+
+    private void About_Click(object sender, RoutedEventArgs e)
+    {
+        var version = typeof(MainWindow).Assembly.GetName().Version?.ToString(3) ?? "?";
+        MessageBox.Show(
+            $"Uninstall Lab {version}\nMIT Lisansı - Rıdvan Namlı\n\n" +
+            $"Yedekler: {BackupRoot}\nAyarlar: {SettingsFile.FilePath}\n\n" +
+            "Bu yazılım \"olduğu gibi\" sunulur. Silme ve kaldırma işlemlerini önce sanal makinede veya " +
+            "Windows Sandbox'ta deneyin. \"Sadece göster\" kutusu her açılışta işaretli başlar.",
+            "Hakkında");
+    }
 
     private async void StoreRemove_Click(object sender, RoutedEventArgs e)
     {

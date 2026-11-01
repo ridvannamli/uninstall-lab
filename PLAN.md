@@ -9,4 +9,4 @@
 - [x] M6 Windows Store (UWP) uygulamaları (PowerShell `Get-AppxPackage`)
 - [x] M7 Başlangıç programları yöneticisi
 - [x] M8 Tarayıcı eklentileri yöneticisi
-- [ ] M9 Arayüz cilası, ayarlar, Inno Setup installer, sürüm etiketi
+- [x] M9 Arayüz cilası, ayarlar, Inno Setup installer, sürüm etiketi

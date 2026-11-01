@@ -7,6 +7,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <AssemblyName>UninstallLab</AssemblyName>
+    <Version>0.1.0</Version>
+    <Product>Uninstall Lab</Product>
+    <Authors>Rıdvan Namlı</Authors>
+    <Copyright>Copyright (c) 2026 Rıdvan Namlı</Copyright>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
   <ItemGroup>
