@@ -42,4 +42,4 @@ Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopico
 
 [Run]
 Filename: "{app}\{#AppExe}"; Description: "Launch {#AppName}"; Flags: nowait postinstall skipifsilent
-; Son paket: M10 (Yenile + kalinti penceresi).
+; Son paket: M11 duzeltme (zaten silinmis kalinti hata sayilmaz).

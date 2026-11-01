@@ -29,6 +29,31 @@ public sealed class CleanupSystem : ICleanupSystem
         Directory.Delete(source, recursive: true);
     }
 
+    public bool RegistryKeyExists(string keyPath)
+    {
+        var sep = keyPath.IndexOf('\\');
+        if (sep <= 0 || sep == keyPath.Length - 1) return false;
+
+        var hive = keyPath[..sep].ToUpperInvariant() switch
+        {
+            "HKCU" => RegistryHive.CurrentUser,
+            "HKLM" => RegistryHive.LocalMachine,
+            _ => (RegistryHive?)null,
+        };
+        if (hive is null) return false;
+
+        try
+        {
+            using var baseKey = RegistryKey.OpenBaseKey(hive.Value, RegistryView.Registry64);
+            using var key = baseKey.OpenSubKey(keyPath[(sep + 1)..]);
+            return key is not null;
+        }
+        catch (Exception ex) when (ex is System.Security.SecurityException or UnauthorizedAccessException or IOException)
+        {
+            return true; // Okunamıyorsa var say; gerçek hata dışa aktarma/silme adımında görünür.
+        }
+    }
+
     public void ExportRegistryKey(string keyPath, string destinationFile) =>
         RunReg("export", keyPath, destinationFile, "/y");
 

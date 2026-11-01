@@ -7,6 +7,7 @@ public interface ICleanupSystem
 {
     void CreateDirectory(string path);
     bool DirectoryExists(string path);
+    bool RegistryKeyExists(string keyPath);
     void MoveDirectory(string source, string destination);
     void ExportRegistryKey(string keyPath, string destinationFile);
     void DeleteRegistryKey(string keyPath);
@@ -98,6 +99,20 @@ public sealed class CleanupExecutor
         if (actionable.Count == 0)
             return new CleanupReport(false, null, false, done, skipped, failed);
 
+        // Tarama ile temizlik arasında silinmiş olabilir (ör. kaldırıcının yardımcı süreci): hedefe ulaşılmıştır.
+        var present = new List<LeftoverItem>();
+        foreach (var item in actionable)
+        {
+            if (Exists(item)) present.Add(item);
+            else Note(done, $"Zaten yok (silinmiş): {item.Path}");
+        }
+
+        // Yapılacak bir şey kalmadıysa boş yedek oturumu oluşturma.
+        if (present.Count == 0)
+            return new CleanupReport(false, null, false, done, skipped, failed);
+
+        actionable = present;
+
         var now = _utcNow();
         var sessionId = now.ToString("yyyyMMdd-HHmmss");
         var sessionDir = Join(_backupRoot, sessionId);
@@ -133,7 +148,10 @@ public sealed class CleanupExecutor
             }
             catch (Exception ex)
             {
-                Note(failed, $"HATA {item.Path}: {ex.Message}");
+                if (!Exists(item))
+                    Note(done, $"Zaten yok (silinmiş): {item.Path}");
+                else
+                    Note(failed, $"HATA {item.Path}: {ex.Message}");
             }
         }
 
@@ -192,6 +210,10 @@ public sealed class CleanupExecutor
         _system.ListDirectoryNames(_backupRoot)
             .OrderByDescending(n => n, StringComparer.Ordinal)
             .FirstOrDefault();
+
+    private bool Exists(LeftoverItem item) => item.Kind == LeftoverKind.Folder
+        ? _system.DirectoryExists(item.Path)
+        : _system.RegistryKeyExists(item.Path);
 
     private static string Join(string a, string b) => a.TrimEnd('\\', '/') + "\\" + b;
 }

@@ -17,3 +17,4 @@
 - Sağ tık "Yenile" ve F5: etkin sekmeyi yeniden okur.
 - Kaldırma sonrası düşük riskli kalıntılar OTOMATİK (yedekli) temizlenir (ayar: AutoCleanLeftovers, varsayılan açık); yalnızca artık listede olmayan programlar için, gerçek modda. Hâlâ yüklü görünen programa ve onunla ortak yollara asla otomatik dokunulmaz (LeftoverPlanner). Riskli öğeler listede kalır, elle seçilir.
 - Uygulama simgesi: kullanıcı görselinden kırpılıp üretilen çok boyutlu .ico (16-256 px); exe, pencereler ve installer'da kullanılır.
+- Temizlikte hedef tarama ile temizlik arasında kendiliğinden silinmişse (kaldırıcının yardımcı süreci) hata değil 'Zaten yok' sayılır; hiç yapılacak iş kalmazsa boş yedek oturumu açılmaz. Taramadan önce 3 sn bekleme (SettleAsync).

@@ -1,7 +1,7 @@
 # Proje Durumu
 
 ## Mevcut aşama
-- M0-M10 bitti. M11 (kullanıcı isteği): otomatik kalıntı temizliği + uygulama simgesi. CI bekleniyor.
+- M0-M11 bitti. Sandbox geri bildirimi (WinRAR: "Could not find a part of the path") düzeltildi; CI bekleniyor.
 
 ## Tamamlananlar
 - M0-M9 CI yeşil (liste, kaldırma, kalıntı tarama, yedekli temizlik + geri alma, toplu kaldırma, Mağaza, başlangıç, tarayıcı eklentileri, ayarlar, installer).

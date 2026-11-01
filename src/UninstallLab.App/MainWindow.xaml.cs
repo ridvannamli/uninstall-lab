@@ -82,6 +82,7 @@ public partial class MainWindow : Window
 
         if (!dryRun && result.Success)
         {
+            await SettleAsync();
             await LoadAsync();
             // Kaldırma sonrası otomatik kalıntı taraması: yollar listelenir, seçilenler canlı günlükle temizlenir.
             await ShowLeftoversAsync(new[] { program }, program.Name, autoClean: true);
@@ -304,6 +305,7 @@ public partial class MainWindow : Window
         if (dryRun) return;
 
         var removed = results.Where(r => r.Result.Success).Select(r => r.Program).ToList();
+        if (removed.Count > 0) await SettleAsync();
         await LoadAsync();
         if (removed.Count > 0)
             await ShowLeftoversAsync(removed, removed.Count == 1 ? removed[0].Name : $"{removed.Count} program", autoClean: true);
@@ -319,6 +321,18 @@ public partial class MainWindow : Window
         }
 
         await ShowLeftoversAsync(selected, selected.Count == 1 ? selected[0].Name : $"{selected.Count} program");
+    }
+
+    /// <summary>
+    /// Bazı kaldırıcılar (ör. WinRAR) ana süreç kapandıktan sonra bir yardımcı süreçle klasörlerini siler.
+    /// Kalıntı taramasından önce kısa süre bekleyerek yanlış "kalıntı" bulmayı azaltır.
+    /// </summary>
+    private async Task SettleAsync()
+    {
+        var title = Title;
+        Title = "Uninstall Lab — kaldırma tamamlanıyor, kalıntılar taranacak...";
+        await Task.Delay(TimeSpan.FromSeconds(3));
+        Title = title;
     }
 
     private bool IsStillInstalled(InstalledProgram p) =>

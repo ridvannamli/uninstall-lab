@@ -13,17 +13,26 @@ public class CleanupTests
         public Dictionary<string, string> Files { get; } = new();
         public HashSet<string> Dirs { get; } = new();
         public HashSet<string> Existing { get; } = new();
+        public HashSet<string> Gone { get; } = new(StringComparer.OrdinalIgnoreCase);
+        public HashSet<string> GoneKeys { get; } = new(StringComparer.OrdinalIgnoreCase);
         public bool FailExport { get; set; }
 
         public void CreateDirectory(string path) { Calls.Add("mkdir " + path); Dirs.Add(path); }
-        public bool DirectoryExists(string path) => Existing.Contains(path);
-        public void MoveDirectory(string source, string destination) => Calls.Add($"move {source}->{destination}");
+        // Varsayılan olarak var; taşınan/silinen kaynak "yok" sayılır, Existing ile yeniden var yapılabilir.
+        public bool DirectoryExists(string path) => Existing.Contains(path) || !Gone.Contains(path);
+        public bool RegistryKeyExists(string keyPath) => !GoneKeys.Contains(keyPath);
+        public void MoveDirectory(string source, string destination)
+        {
+            Calls.Add($"move {source}->{destination}");
+            Gone.Add(source);
+            Gone.Remove(destination);
+        }
         public void ExportRegistryKey(string keyPath, string destinationFile)
         {
             if (FailExport) throw new IOException("export failed");
             Calls.Add("export " + keyPath);
         }
-        public void DeleteRegistryKey(string keyPath) => Calls.Add("delete " + keyPath);
+        public void DeleteRegistryKey(string keyPath) { Calls.Add("delete " + keyPath); GoneKeys.Add(keyPath); }
         public void ImportRegistryFile(string file) => Calls.Add("import " + file);
         public void WriteAllText(string path, string text) => Files[path] = text;
         public string ReadAllText(string path) =>
@@ -136,6 +145,48 @@ public class CleanupTests
 
         Assert.Single(progress.Lines);
         Assert.StartsWith("[önizleme]", progress.Lines[0]);
+    }
+
+    [Fact]
+    public void Execute_FolderAlreadyGone_IsDoneNotFailed_AndNothingMoved()
+    {
+        var sys = new FakeSystem();
+        sys.Gone.Add(@"C:\Program Files\WinRAR");
+
+        var r = Make(sys).Execute(new[] { Folder(@"C:\Program Files\WinRAR", 10) }, dryRun: false);
+
+        Assert.Empty(r.Failed);
+        Assert.Single(r.Done);
+        Assert.Contains("Zaten yok", r.Done[0]);
+        Assert.DoesNotContain(sys.Calls, c => c.StartsWith("move"));
+        Assert.Null(r.SessionId);
+        Assert.DoesNotContain(sys.Calls, c => c.StartsWith("mkdir"));
+    }
+
+    [Fact]
+    public void Execute_RegistryKeyAlreadyGone_IsDoneNotFailed_AndNotExportedOrDeleted()
+    {
+        var sys = new FakeSystem();
+        sys.GoneKeys.Add(@"HKCU\Software\Demo");
+
+        var r = Make(sys).Execute(new[] { Key(@"HKCU\Software\Demo") }, dryRun: false);
+
+        Assert.Empty(r.Failed);
+        Assert.Contains("Zaten yok", r.Done[0]);
+        Assert.DoesNotContain(sys.Calls, c => c.StartsWith("export") || c.StartsWith("delete"));
+    }
+
+    [Fact]
+    public void Execute_AlreadyGoneItem_DoesNotBreakOthers()
+    {
+        var sys = new FakeSystem();
+        sys.Gone.Add(@"C:\ProgramData\Gone");
+
+        var r = Make(sys).Execute(
+            new[] { Folder(@"C:\ProgramData\Gone"), Folder(@"C:\ProgramData\Still") }, dryRun: false);
+
+        Assert.Equal(2, r.Done.Count);
+        Assert.Contains(sys.Calls, c => c.StartsWith(@"move C:\ProgramData\Still->"));
     }
 
     [Fact]
