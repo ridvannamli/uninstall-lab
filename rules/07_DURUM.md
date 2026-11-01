@@ -1,20 +1,20 @@
 # Proje Durumu
 
 ## Mevcut aşama
-- M4 kodu yazıldı, CI bekleniyor. Sıradaki: `PLAN.md` M5.
+- M5 kodu yazıldı, CI bekleniyor. Sıradaki: `PLAN.md` M6.
 
 ## Tamamlananlar
-- M0-M3 (iskelet, liste, standart kaldırma, kalıntı tarama) CI yeşil.
-- M4: `CleanupExecutor` (dry-run varsayılan, yalnızca düşük risk, korumalı yollar atlanır, klasör→yedek konuma taşı, registry→.reg yedek sonra sil, manifest, `Undo`, geri yükleme noktası denemesi), Windows gerçeklemesi (`CleanupSystem`, `RestorePointCreator`), arayüzde "Kalıntıları temizle" ve "Son temizliği geri al".
+- M0-M4 CI yeşil: liste, standart kaldırma, kalıntı tarama, yedekli temizlik + geri alma.
+- M5: `BatchUninstaller` (sıralı, hata sonrakini durdurmaz, iptal, ilerleme), arayüzde çoklu seçim + "Seçilenleri toplu kaldır" + "Sessiz kaldır".
 
 ## Son doğrulama
-- M0-M3: CI başarılı. M4: CI bekleniyor.
+- M0-M4: CI başarılı. M5: CI bekleniyor.
 
 ## Bilinen sorunlar
-- Container'da .NET SDK yok; doğrulama yalnızca CI'da. Gerçek taşıma/registry silme/geri alma Windows'ta elle denenmedi (SANDBOX'ta deneyin, gerçek bilgisayarda değil).
+- Container'da .NET SDK yok; doğrulama yalnızca CI'da. Gerçek kaldırma/temizleme/geri alma Windows'ta elle denenmedi (SANDBOX'ta deneyin).
 
 ## Sonraki aşama
-- M5: Toplu kaldırma.
+- M6: Windows Store (UWP) uygulamaları.
 
 ## Son güncelleme
-- 2026-11-01: M4 uygulandı.
+- 2026-11-01: M5 uygulandı.

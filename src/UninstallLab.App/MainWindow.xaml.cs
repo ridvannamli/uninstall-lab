@@ -8,6 +8,8 @@ namespace UninstallLab.App;
 public partial class MainWindow : Window
 {
     private readonly UninstallService _uninstaller = new(new ProcessRunner());
+    private readonly BatchUninstaller _batch;
+
     private readonly LeftoverScanner _scanner =
         new(new FileSystemProbe(), new RegistryProbe(), WindowsScanLocations.Default());
 
@@ -20,6 +22,7 @@ public partial class MainWindow : Window
 
     public MainWindow()
     {
+        _batch = new BatchUninstaller(_uninstaller);
         InitializeComponent();
         Loaded += async (_, _) => await LoadAsync();
     }
@@ -55,6 +58,37 @@ public partial class MainWindow : Window
         MessageBox.Show(Describe(result));
 
         if (!dryRun && result.Success) await LoadAsync();
+    }
+
+    private async void Batch_Click(object sender, RoutedEventArgs e)
+    {
+        var selected = ProgramList.SelectedItems.OfType<InstalledProgram>().ToList();
+        if (selected.Count == 0)
+        {
+            MessageBox.Show("Önce listeden bir veya daha fazla program seçin (Ctrl/Shift ile çoklu seçim).");
+            return;
+        }
+
+        var dryRun = DryRunBox.IsChecked == true;
+        if (!dryRun)
+        {
+            var answer = MessageBox.Show($"{selected.Count} program sırayla kaldırılacak. Devam edilsin mi?",
+                "Onay", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            if (answer != MessageBoxResult.Yes) return;
+        }
+
+        var progress = new Progress<BatchProgress>(p => Title = $"Uninstall Lab — {p.Index}/{p.Total}: {p.Name}");
+        var results = await _batch.RunAsync(selected, QuietBox.IsChecked == true, dryRun, progress);
+        Title = "Uninstall Lab";
+
+        var ok = results.Count(r => r.Result.Success);
+        var lines = results.Select(r =>
+            (r.Result.Success ? "[OK] " : "[HATA] ") + r.Program.Name +
+            (r.Result.Error is null ? string.Empty : $": {r.Result.Error}"));
+        MessageBox.Show($"{ok}/{results.Count} başarılı{(dryRun ? " (önizleme)" : string.Empty)}\n\n" + string.Join("\n", lines),
+            "Toplu kaldırma");
+
+        if (!dryRun) await LoadAsync();
     }
 
     private async void Scan_Click(object sender, RoutedEventArgs e)

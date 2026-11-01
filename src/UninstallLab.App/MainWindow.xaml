@@ -27,7 +27,9 @@
         <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,8,0,0">
             <CheckBox x:Name="DryRunBox" Content="Sadece göster (hiçbir şey kaldırma)"
                       IsChecked="True" VerticalAlignment="Center" />
+            <CheckBox x:Name="QuietBox" Content="Sessiz kaldır" Margin="16,0,0,0" VerticalAlignment="Center" />
             <Button Content="Kaldır" Margin="16,0,0,0" Padding="16,4" Click="Uninstall_Click" />
+            <Button Content="Seçilenleri toplu kaldır" Margin="8,0,0,0" Padding="16,4" Click="Batch_Click" />
             <Button Content="Kalıntıları tara" Margin="8,0,0,0" Padding="16,4" Click="Scan_Click" />
             <Button Content="Kalıntıları temizle" Margin="8,0,0,0" Padding="16,4" Click="Clean_Click" />
             <Button Content="Son temizliği geri al" Margin="8,0,0,0" Padding="16,4" Click="Undo_Click" />
