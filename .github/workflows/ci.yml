@@ -1,0 +1,44 @@
+name: ci
+
+on:
+  push:
+    branches: [dev, main]
+    paths-ignore: ['**/*.md', 'rules/**']
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    # Ucuz Linux koşusu: platformdan bağımsız Core mantığı.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+          cache: true
+          cache-dependency-path: '**/*.csproj'
+      - run: dotnet test tests/UninstallLab.Core.Tests --nologo -v q
+
+  windows-build:
+    # Pahalı Windows koşusu: yalnızca dev dalı, ücretsiz kotayı korumak için.
+    needs: test
+    if: github.ref == 'refs/heads/dev'
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - run: dotnet build src/UninstallLab.App -c Release --nologo -v q
+      - run: dotnet publish src/UninstallLab.App -c Release -r win-x64 --self-contained false -o publish --nologo -v q
+      - uses: actions/upload-artifact@v4
+        with:
+          name: uninstall-lab-win-x64
+          path: publish
+          retention-days: 7
