@@ -5,6 +5,18 @@ namespace UninstallLab.Platform.Windows;
 
 public sealed class FileSystemProbe : IFileSystemProbe
 {
+    public bool DirectoryExists(string path)
+    {
+        try
+        {
+            return Directory.Exists(path);
+        }
+        catch (Exception ex) when (ex is UnauthorizedAccessException or IOException)
+        {
+            return false;
+        }
+    }
+
     public IEnumerable<string> EnumerateDirectories(string parent)
     {
         try

@@ -1,7 +1,8 @@
 <Window x:Class="UninstallLab.App.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Uninstall Lab" Height="600" Width="960" MinHeight="480" MinWidth="780">
+        Title="Uninstall Lab" Height="600" Width="960" MinHeight="480" MinWidth="780"
+        PreviewKeyDown="Window_PreviewKeyDown">
     <Grid Margin="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -23,6 +24,11 @@
                     <TextBox x:Name="SearchBox" Margin="0,0,0,8" TextChanged="SearchBox_TextChanged" />
 
                     <ListView x:Name="ProgramList" Grid.Row="1">
+                        <ListView.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Yenile (F5)" Click="Refresh_Click" />
+                            </ContextMenu>
+                        </ListView.ContextMenu>
                         <ListView.View>
                             <GridView>
                                 <GridViewColumn Header="Ad" Width="360" DisplayMemberBinding="{Binding Name}" />
@@ -36,9 +42,8 @@
                         <CheckBox x:Name="QuietBox" Content="Sessiz kaldır" VerticalAlignment="Center" Margin="0,0,8,0" />
                         <Button Content="Kaldır" Margin="4" Padding="16,4" Click="Uninstall_Click" />
                         <Button Content="Seçilenleri toplu kaldır" Margin="4" Padding="16,4" Click="Batch_Click" />
-                        <Button Content="Kalıntıları tara" Margin="4" Padding="16,4" Click="Scan_Click" />
-                        <Button Content="Kalıntıları temizle" Margin="4" Padding="16,4" Click="Clean_Click" />
-                        <Button Content="Son temizliği geri al" Margin="4" Padding="16,4" Click="Undo_Click" />
+                        <Button Content="Kalıntıları tara / temizle" Margin="4" Padding="16,4" Click="Scan_Click" />
+                                                <Button Content="Son temizliği geri al" Margin="4" Padding="16,4" Click="Undo_Click" />
                     </WrapPanel>
                 </Grid>
             </TabItem>
@@ -54,6 +59,11 @@
                     <TextBox x:Name="StoreSearchBox" Margin="0,0,0,8" TextChanged="StoreSearchBox_TextChanged" />
 
                     <ListView x:Name="StoreList" Grid.Row="1">
+                        <ListView.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Yenile (F5)" Click="Refresh_Click" />
+                            </ContextMenu>
+                        </ListView.ContextMenu>
                         <ListView.View>
                             <GridView>
                                 <GridViewColumn Header="Ad" Width="360" DisplayMemberBinding="{Binding Name}" />
@@ -82,6 +92,11 @@
                     <TextBox x:Name="StartupSearchBox" Margin="0,0,0,8" TextChanged="StartupSearchBox_TextChanged" />
 
                     <ListView x:Name="StartupList" Grid.Row="1">
+                        <ListView.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Yenile (F5)" Click="Refresh_Click" />
+                            </ContextMenu>
+                        </ListView.ContextMenu>
                         <ListView.View>
                             <GridView>
                                 <GridViewColumn Header="Ad" Width="220" DisplayMemberBinding="{Binding Name}" />
@@ -111,6 +126,11 @@
                     <TextBox x:Name="ExtensionSearchBox" Margin="0,0,0,8" TextChanged="ExtensionSearchBox_TextChanged" />
 
                     <ListView x:Name="ExtensionList" Grid.Row="1">
+                        <ListView.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Yenile (F5)" Click="Refresh_Click" />
+                            </ContextMenu>
+                        </ListView.ContextMenu>
                         <ListView.View>
                             <GridView>
                                 <GridViewColumn Header="Tarayıcı" Width="80" DisplayMemberBinding="{Binding Browser}" />

@@ -17,12 +17,20 @@ public static class UninstallEntryParser
             AsText(getValue("Publisher")),
             AsText(getValue("DisplayVersion")),
             AsText(getValue("UninstallString")),
-            AsText(getValue("QuietUninstallString")));
+            AsText(getValue("QuietUninstallString")),
+            AsPath(getValue("InstallLocation")));
     }
 
     private static string? AsText(object? value)
     {
         var text = value as string;
         return string.IsNullOrWhiteSpace(text) ? null : text.Trim();
+    }
+
+    // Tırnakları ve sondaki ayırıcıyı temizler; boşsa null.
+    private static string? AsPath(object? value)
+    {
+        var text = AsText(value)?.Trim('"').TrimEnd('\\', '/').Trim();
+        return string.IsNullOrEmpty(text) ? null : text;
     }
 }

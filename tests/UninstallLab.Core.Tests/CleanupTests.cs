@@ -107,6 +107,37 @@ public class CleanupTests
         Assert.DoesNotContain(sys.Calls, c => c.StartsWith("delete"));
     }
 
+    private sealed class ListProgress : IProgress<string>
+    {
+        public List<string> Lines { get; } = new();
+        public void Report(string value) => Lines.Add(value);
+    }
+
+    [Fact]
+    public void Execute_ReportsLiveProgress_ForEachItem()
+    {
+        var progress = new ListProgress();
+        var items = new[] { Folder(@"C:\ProgramData\Demo"), Key(@"HKCU\Software\Demo") };
+
+        Make(new FakeSystem()).Execute(items, dryRun: false, progress: progress);
+
+        Assert.Contains(progress.Lines, l => l.StartsWith("[1/2] İşleniyor:") && l.EndsWith(@"C:\ProgramData\Demo"));
+        Assert.Contains(progress.Lines, l => l.StartsWith("[2/2] İşleniyor:") && l.EndsWith(@"HKCU\Software\Demo"));
+        Assert.Contains(progress.Lines, l => l.StartsWith("Taşındı"));
+        Assert.Contains(progress.Lines, l => l.StartsWith("Silindi"));
+    }
+
+    [Fact]
+    public void Execute_DryRun_ReportsPlannedActionsAsProgress()
+    {
+        var progress = new ListProgress();
+
+        Make(new FakeSystem()).Execute(new[] { Folder(@"C:\ProgramData\Demo") }, dryRun: true, progress: progress);
+
+        Assert.Single(progress.Lines);
+        Assert.StartsWith("[önizleme]", progress.Lines[0]);
+    }
+
     [Fact]
     public void Execute_CreatesRestorePointOnce()
     {

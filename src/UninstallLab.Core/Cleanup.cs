@@ -58,19 +58,30 @@ public sealed class CleanupExecutor
         _restorePoint = restorePoint;
     }
 
-    public CleanupReport Execute(IReadOnlyList<LeftoverItem> items, bool dryRun, bool includeRisky = false)
+    /// <param name="progress">Her adımda canlı satır bildirir (arayüzde günlük için).</param>
+    public CleanupReport Execute(
+        IReadOnlyList<LeftoverItem> items,
+        bool dryRun,
+        bool includeRisky = false,
+        IProgress<string>? progress = null)
     {
         var done = new List<string>();
         var skipped = new List<string>();
         var failed = new List<string>();
         var actionable = new List<LeftoverItem>();
 
+        void Note(List<string> list, string line)
+        {
+            list.Add(line);
+            progress?.Report(line);
+        }
+
         foreach (var item in items)
         {
             if (ProtectedPaths.IsProtected(item.Path))
-                skipped.Add($"Korumalı: {item.Path}");
+                Note(skipped, $"Korumalı, atlandı: {item.Path}");
             else if (!includeRisky && !item.SafeByDefault)
-                skipped.Add($"Yüksek risk (atlandı): {item.Path}");
+                Note(skipped, $"Yüksek risk, atlandı: {item.Path}");
             else
                 actionable.Add(item);
         }
@@ -78,9 +89,9 @@ public sealed class CleanupExecutor
         if (dryRun)
         {
             foreach (var item in actionable)
-                done.Add(item.Kind == LeftoverKind.Folder
-                    ? $"Taşınacak: {item.Path}"
-                    : $"Yedeklenip silinecek: {item.Path}");
+                Note(done, item.Kind == LeftoverKind.Folder
+                    ? $"[önizleme] Taşınacak: {item.Path}"
+                    : $"[önizleme] Yedeklenip silinecek: {item.Path}");
             return new CleanupReport(true, null, false, done, skipped, failed);
         }
 
@@ -91,12 +102,17 @@ public sealed class CleanupExecutor
         var sessionId = now.ToString("yyyyMMdd-HHmmss");
         var sessionDir = Join(_backupRoot, sessionId);
         _system.CreateDirectory(sessionDir);
+        progress?.Report($"Oturum: {sessionId}. Geri yükleme noktası deneniyor...");
         var restoreOk = _restorePoint?.TryCreate($"UninstallLab {sessionId}") ?? false;
+        progress?.Report(restoreOk
+            ? "Geri yükleme noktası oluşturuldu."
+            : "Geri yükleme noktası oluşturulamadı (yedekler yine alınır).");
 
         var entries = new List<CleanupRecord>();
         for (var n = 0; n < actionable.Count; n++)
         {
             var item = actionable[n];
+            progress?.Report($"[{n + 1}/{actionable.Count}] İşleniyor: {item.Path}");
             try
             {
                 if (item.Kind == LeftoverKind.Folder)
@@ -104,7 +120,7 @@ public sealed class CleanupExecutor
                     var destination = Join(Join(sessionDir, "files"), n.ToString());
                     _system.MoveDirectory(item.Path, destination);
                     entries.Add(new CleanupRecord(item.Kind, item.Path, destination));
-                    done.Add($"Taşındı: {item.Path}");
+                    Note(done, $"Taşındı (yedeğe): {item.Path}");
                 }
                 else
                 {
@@ -112,12 +128,12 @@ public sealed class CleanupExecutor
                     _system.ExportRegistryKey(item.Path, file);
                     _system.DeleteRegistryKey(item.Path); // yalnızca yedek başarılıysa
                     entries.Add(new CleanupRecord(item.Kind, item.Path, file));
-                    done.Add($"Silindi (yedekli): {item.Path}");
+                    Note(done, $"Silindi (yedekli): {item.Path}");
                 }
             }
             catch (Exception ex)
             {
-                failed.Add($"{item.Path}: {ex.Message}");
+                Note(failed, $"HATA {item.Path}: {ex.Message}");
             }
         }
 

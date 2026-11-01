@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using UninstallLab.Core;
 using UninstallLab.Platform.Windows;
 
@@ -77,7 +78,12 @@ public partial class MainWindow : Window
         var result = await _uninstaller.UninstallAsync(program, quiet: false, dryRun: dryRun);
         MessageBox.Show(Describe(result));
 
-        if (!dryRun && result.Success) await LoadAsync();
+        if (!dryRun && result.Success)
+        {
+            await LoadAsync();
+            // Kaldırma sonrası otomatik kalıntı taraması: yollar listelenir, seçilenler canlı günlükle temizlenir.
+            await ShowLeftoversAsync(new[] { program }, program.Name);
+        }
     }
 
     private async void Tabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -293,51 +299,81 @@ public partial class MainWindow : Window
         MessageBox.Show($"{ok}/{results.Count} başarılı{(dryRun ? " (önizleme)" : string.Empty)}\n\n" + string.Join("\n", lines),
             "Toplu kaldırma");
 
-        if (!dryRun) await LoadAsync();
+        if (dryRun) return;
+
+        var removed = results.Where(r => r.Result.Success).Select(r => r.Program).ToList();
+        await LoadAsync();
+        if (removed.Count > 0)
+            await ShowLeftoversAsync(removed, removed.Count == 1 ? removed[0].Name : $"{removed.Count} program");
     }
 
     private async void Scan_Click(object sender, RoutedEventArgs e)
     {
-        if (ProgramList.SelectedItem is not InstalledProgram program)
+        var selected = ProgramList.SelectedItems.OfType<InstalledProgram>().ToList();
+        if (selected.Count == 0)
         {
-            MessageBox.Show("Önce listeden bir program seçin.");
+            MessageBox.Show("Önce listeden bir veya daha fazla program seçin.");
             return;
         }
 
-        var items = await Task.Run(() => _scanner.Scan(program));
-        var text = items.Count == 0
-            ? "Kalıntı bulunamadı."
-            : string.Join("\n", items.Take(40).Select(i => $"[risk {i.Risk}] {i.Path}"));
-        MessageBox.Show(text + "\n\n(Yalnızca tarama: hiçbir şey silinmedi.)", "Kalıntı raporu");
+        await ShowLeftoversAsync(selected, selected.Count == 1 ? selected[0].Name : $"{selected.Count} program");
     }
 
-    private async void Clean_Click(object sender, RoutedEventArgs e)
+    /// <summary>Programların kalıntılarını tarar ve yolları listeleyen pencereyi açar.</summary>
+    private async Task ShowLeftoversAsync(IReadOnlyList<InstalledProgram> programs, string title)
     {
-        if (ProgramList.SelectedItem is not InstalledProgram program)
-        {
-            MessageBox.Show("Önce listeden bir program seçin.");
-            return;
-        }
+        var items = await Task.Run(() => programs
+            .SelectMany(p => _scanner.Scan(p))
+            .GroupBy(i => (i.Kind, Path: i.Path.ToLowerInvariant()))
+            .Select(g => g.OrderBy(i => i.Risk).First())
+            .OrderBy(i => i.Risk)
+            .ThenBy(i => i.Path, StringComparer.OrdinalIgnoreCase)
+            .ToList());
 
-        var items = await Task.Run(() => _scanner.Scan(program));
-        var safeCount = items.Count(i => i.SafeByDefault);
-        if (safeCount == 0)
-        {
-            MessageBox.Show("Temizlenecek güvenli kalıntı bulunamadı.");
-            return;
-        }
+        // Liste yenilendikten sonra hâlâ görünen program, kaldırılmamış demektir; kullanıcı uyarılır.
+        var stillInstalled = programs
+            .Where(p => _all.Any(a => a.Name == p.Name && a.Version == p.Version))
+            .Select(p => p.Name)
+            .ToList();
 
-        var dryRun = DryRunBox.IsChecked == true;
-        if (!dryRun)
+        var window = new LeftoverWindow(title, items, _cleaner, DryRunBox.IsChecked == true, stillInstalled)
         {
-            var answer = MessageBox.Show(
-                $"{safeCount} güvenli kalıntı yedeklenip kaldırılacak (geri alınabilir). Devam edilsin mi?",
-                "Onay", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-            if (answer != MessageBoxResult.Yes) return;
-        }
+            Owner = this,
+        };
+        window.ShowDialog();
+    }
 
-        var report = await Task.Run(() => _cleaner.Execute(items, dryRun));
-        MessageBox.Show(DescribeCleanup(report), "Temizlik raporu");
+    private async void Refresh_Click(object sender, RoutedEventArgs e) => await RefreshCurrentTabAsync();
+
+    private async void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.F5) return;
+        e.Handled = true;
+        await RefreshCurrentTabAsync();
+    }
+
+    /// <summary>Etkin sekmenin listesini yeniden okur (yeni kurulan programlar görünsün diye).</summary>
+    private async Task RefreshCurrentTabAsync()
+    {
+        if (ReferenceEquals(Tabs.SelectedItem, StoreTab))
+        {
+            _storeLoaded = true;
+            await LoadStoreAsync();
+        }
+        else if (ReferenceEquals(Tabs.SelectedItem, StartupTab))
+        {
+            _startupLoaded = true;
+            await LoadStartupAsync();
+        }
+        else if (ReferenceEquals(Tabs.SelectedItem, ExtensionsTab))
+        {
+            _extensionsLoaded = true;
+            await LoadExtensionsAsync();
+        }
+        else
+        {
+            await LoadAsync();
+        }
     }
 
     private async void Undo_Click(object sender, RoutedEventArgs e)
@@ -357,19 +393,6 @@ public partial class MainWindow : Window
         var text = $"Geri yüklenen öğe: {result.Restored}";
         if (result.Failed.Count > 0) text += "\n\nSorunlar:\n" + string.Join("\n", result.Failed);
         MessageBox.Show(text, "Geri alma");
-    }
-
-    private static string DescribeCleanup(CleanupReport r)
-    {
-        var lines = new List<string>();
-        lines.Add(r.DryRun ? "Önizleme (hiçbir şey değiştirilmedi):" : $"Oturum: {r.SessionId}");
-        lines.AddRange(r.Done);
-        if (r.Skipped.Count > 0) lines.Add("\nAtlananlar:");
-        lines.AddRange(r.Skipped);
-        if (r.Failed.Count > 0) lines.Add("\nHatalar:");
-        lines.AddRange(r.Failed);
-        if (!r.DryRun) lines.Add(r.RestorePointCreated ? "\nGeri yükleme noktası oluşturuldu." : "\nGeri yükleme noktası oluşturulamadı (yedekler yine alındı).");
-        return string.Join("\n", lines);
     }
 
     private static string Describe(UninstallResult r)

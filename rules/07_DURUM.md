@@ -1,23 +1,22 @@
 # Proje Durumu
 
 ## Mevcut aşama
-- M9 tamamlandı; CI ve release iş akışı (installer) doğrulandı. PLAN.md tamamlandı (M0-M9).
+- M0-M9 bitti. Kullanıcı isteğiyle ek iş (M10): Yenile + kaldırma sonrası kalıntı penceresi. CI bekleniyor.
 
 ## Tamamlananlar
-- M0-M8 CI yeşil: liste, kaldırma, kalıntı tarama, yedekli temizlik + geri alma, toplu kaldırma, Mağaza uygulamaları, başlangıç yöneticisi, tarayıcı eklentileri.
-- M9: `AppSettings` (QuietByDefault, ShowSystemStoreApps; dry-run kalıcı kapatılamaz), Hakkında, app.manifest (highestAvailable), sürüm 0.1.0, exe adı UninstallLab.exe, Inno Setup betiği, `release.yml` (installer + etiketle taslak release), README.
+- M0-M9 CI yeşil (liste, kaldırma, kalıntı tarama, yedekli temizlik + geri alma, toplu kaldırma, Mağaza, başlangıç, tarayıcı eklentileri, ayarlar, installer).
+- M10: sağ tık "Yenile (F5)" (tüm listeler); kaldırma ve toplu kaldırma sonrası otomatik kalıntı penceresi (klasör/registry yolları, risk, neden, onay kutuları, canlı silme günlüğü); tarayıcıdan InstallLocation, yayıncı\program iç içe klasör/anahtar tarama; AppData/kullanıcı profili korumaları.
 
 ## Son doğrulama
-- M0-M9: CI başarılı; release.yml installer üretti.
+- M0-M9: CI başarılı. M10: CI bekleniyor.
 
 ## Bilinen sorunlar
-- Hiçbir kod Windows'ta elle çalıştırılmadı; yalnızca CI derleme + Core birim testleri doğrulandı. SANDBOX'ta deneyin.
+- Hiçbir kod Windows'ta elle çalıştırılmadı (yalnızca CI derleme + Core birim testleri). SANDBOX'ta deneyin.
+- Tarama yalnızca klasör ve registry ANAHTARI bulur; tek tek registry DEĞERLERİ (dosya ilişkilendirmeleri, App Paths vb.) ve tek dosyalar taranmaz.
 - Chromium eklenti açık/kapalı durumu okunmuyor.
-- GitHub release için etiket (örn. v0.1.0) elle itilmeli; yalnızca taslak ön sürüm oluşur.
 
 ## Sonraki adım
-- Kullanıcı: sandbox testi (artifact'ı indir, dry-run ile dene), sorunları bildir.
-- Plan bitti: zamanlanmış görev kapatılabilir.
+- Kullanıcı: yeni installer'ı indir, Sandbox'ta dene, sorunları bildir.
 
 ## Son güncelleme
-- 2026-11-01: M9 uygulandı.
+- 2026-11-01: M10 uygulandı.

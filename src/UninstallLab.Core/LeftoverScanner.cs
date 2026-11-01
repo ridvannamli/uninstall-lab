@@ -15,6 +15,8 @@ public interface IFileSystemProbe
 {
     /// <summary>Üst klasörün alt klasörlerinin tam yollarını döndürür (yoksa boş).</summary>
     IEnumerable<string> EnumerateDirectories(string parent);
+
+    bool DirectoryExists(string path);
 }
 
 public interface IRegistryProbe
@@ -27,6 +29,7 @@ public interface IRegistryProbe
 public sealed class LeftoverScanner
 {
     private const int MinNameLength = 3;
+    private const int RiskInstallFolder = 10;
     private const int RiskNameMatch = 20;
     private const int RiskPublisherMatch = 60;
 
@@ -47,6 +50,8 @@ public sealed class LeftoverScanner
         var publisher = NameNormalizer.Normalize(program.Publisher);
         var found = new List<LeftoverItem>();
 
+        AddInstallLocation(program, name, publisher, found);
+
         foreach (var root in _locations.FolderRoots)
             foreach (var dir in _fs.EnumerateDirectories(root))
                 Consider(dir, LeftoverKind.Folder, name, publisher, found);
@@ -56,12 +61,42 @@ public sealed class LeftoverScanner
                 Consider(key, LeftoverKind.RegistryKey, name, publisher, found);
 
         return found
+            .GroupBy(i => (i.Kind, Path: i.Path.ToLowerInvariant()))
+            .Select(g => g.OrderBy(i => i.Risk).First())
             .OrderBy(i => i.Risk)
             .ThenBy(i => i.Path, StringComparer.OrdinalIgnoreCase)
             .ToList();
     }
 
-    private static void Consider(string path, LeftoverKind kind, string name, string publisher, List<LeftoverItem> into)
+    // Registry'deki InstallLocation: yalnızca bilinen kök klasörlerin ALTINDAYSA ve hâlâ varsa kalıntıdır.
+    private void AddInstallLocation(InstalledProgram program, string name, string publisher, List<LeftoverItem> into)
+    {
+        var path = program.InstallLocation?.Trim().Trim('"').TrimEnd('\\', '/');
+        if (string.IsNullOrEmpty(path)) return;
+        if (ProtectedPaths.IsProtected(path)) return;
+        if (!IsStrictlyUnderRoot(path)) return;
+        if (!_fs.DirectoryExists(path)) return;
+
+        var segment = NameNormalizer.Normalize(PathText.LastSegment(path));
+        // Yayıncı klasörü başka ürünlerle paylaşılıyor olabilir: güvenli sayılmaz.
+        if (segment.Length >= MinNameLength && segment == publisher && segment != name)
+            into.Add(new LeftoverItem(LeftoverKind.Folder, path, RiskPublisherMatch,
+                "Kurulum klasörü yayıncı klasörü gibi görünüyor (başka ürünlerle paylaşılıyor olabilir)"));
+        else
+            into.Add(new LeftoverItem(LeftoverKind.Folder, path, RiskInstallFolder,
+                "Kurulum klasörü (kaldırma sonrası kalmış)"));
+    }
+
+    private bool IsStrictlyUnderRoot(string path) =>
+        _locations.FolderRoots.Any(root =>
+        {
+            var r = root.TrimEnd('\\', '/');
+            return r.Length > 0
+                && path.Length > r.Length + 1
+                && path.StartsWith(r + "\\", StringComparison.OrdinalIgnoreCase);
+        });
+
+    private void Consider(string path, LeftoverKind kind, string name, string publisher, List<LeftoverItem> into)
     {
         if (ProtectedPaths.IsProtected(path)) return;
 
@@ -69,9 +104,29 @@ public sealed class LeftoverScanner
         if (segment.Length < MinNameLength) return;
 
         if (segment == name)
+        {
             into.Add(new LeftoverItem(kind, path, RiskNameMatch, "Program adıyla eşleşiyor"));
-        else if (segment == publisher)
-            into.Add(new LeftoverItem(kind, path, RiskPublisherMatch,
-                "Yayıncı adıyla eşleşiyor (başka ürünlerle paylaşılıyor olabilir)"));
+            return;
+        }
+
+        if (segment != publisher) return;
+
+        into.Add(new LeftoverItem(kind, path, RiskPublisherMatch,
+            "Yayıncı adıyla eşleşiyor (başka ürünlerle paylaşılıyor olabilir)"));
+
+        // Yayıncı\Program iç içe düzeni (ör. ...\Acme\Demo App): iç klasör/anahtar program adıyla eşleşiyorsa
+        // yalnızca o güvenli kalıntıdır; yayıncı klasörü riskli kalır.
+        var children = kind == LeftoverKind.Folder
+            ? _fs.EnumerateDirectories(path)
+            : _registry.EnumerateSubKeys(path);
+
+        foreach (var child in children)
+        {
+            if (ProtectedPaths.IsProtected(child)) continue;
+            var childSegment = NameNormalizer.Normalize(PathText.LastSegment(child));
+            if (childSegment.Length >= MinNameLength && childSegment == name)
+                into.Add(new LeftoverItem(kind, child, RiskNameMatch,
+                    "Yayıncı klasörü/anahtarı içinde program adıyla eşleşiyor"));
+        }
     }
 }

@@ -12,3 +12,6 @@
 - Release iş akışı etiket itilince yalnızca TASLAK + ön sürüm oluşturur; gerçek bilgisayar/sandbox denemesi öncesi otomatik yayın yok.
 - Installer: Inno Setup, self-contained tek dosya publish (kullanıcıda .NET gerekmez); .iss yalnızca ASCII.
 - WPF projelerinde `System.IO` örtük using değildir; App kodunda açıkça eklenir/tam ad kullanılır.
+- Kaldırma sonrası kalıntı penceresi: yollar listelenir, düşük riskli olanlar önceden seçili, silme adımları canlı günlükte; liste yenilenince hâlâ yüklü görünen programa uyarı. Dry-run'da otomatik tarama yok (program hâlâ yüklü).
+- InstallLocation yalnızca bilinen kök klasörlerin (Program Files, ProgramData, AppData...) ALTINDAYSA, korumalı değilse ve hâlâ varsa kalıntı sayılır (AppData\Local gibi üst klasörlerin taşınmasını engellemek için).
+- Sağ tık "Yenile" ve F5: etkin sekmeyi yeniden okur.

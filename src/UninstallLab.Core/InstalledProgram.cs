@@ -6,7 +6,8 @@ public sealed record InstalledProgram(
     string? Publisher = null,
     string? Version = null,
     string? UninstallString = null,
-    string? QuietUninstallString = null)
+    string? QuietUninstallString = null,
+    string? InstallLocation = null)
 {
     public bool CanUninstall =>
         !string.IsNullOrWhiteSpace(UninstallString) ||

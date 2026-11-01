@@ -47,6 +47,24 @@ public class ProgramListingTests
         Assert.True(p.CanUninstall);
     }
 
+    [Theory]
+    [InlineData("C:\\Program Files\\Demo\\", "C:\\Program Files\\Demo")]
+    [InlineData("\"C:\\Program Files\\Demo\"", "C:\\Program Files\\Demo")]
+    [InlineData("  C:\\Apps\\Demo  ", "C:\\Apps\\Demo")]
+    public void Parse_InstallLocation_TrimsQuotesAndTrailingSeparator(string raw, string expected)
+    {
+        var p = UninstallEntryParser.Parse(Values(("DisplayName", "Demo"), ("InstallLocation", raw)));
+        Assert.Equal(expected, p!.InstallLocation);
+    }
+
+    [Fact]
+    public void Parse_InstallLocation_NullWhenMissingOrBlank()
+    {
+        Assert.Null(UninstallEntryParser.Parse(Values(("DisplayName", "Demo")))!.InstallLocation);
+        Assert.Null(UninstallEntryParser.Parse(Values(("DisplayName", "Demo"), ("InstallLocation", "  ")))!.InstallLocation);
+        Assert.Null(UninstallEntryParser.Parse(Values(("DisplayName", "Demo"), ("InstallLocation", "\"\"")))!.InstallLocation);
+    }
+
     [Fact]
     public void Apply_RemovesDuplicates_AndSortsByName()
     {
