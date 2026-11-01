@@ -5,3 +5,4 @@
 - Windows CI yalnızca `dev` push'unda — ücretsiz Actions kotası (private repo, $0 bütçe).
 - DI çatısı yok — minimum bağımlılık.
 - İskelette `.sln` yok; CI proje yollarını doğrudan kullanır — container'da SDK yok, elle sln yazmak hata riski.
+- MIT lisansı, telif: Rıdvan Namlı; repo public — gizli bilgi commit edilmez, .env/anahtar dosyaları .gitignore'da.

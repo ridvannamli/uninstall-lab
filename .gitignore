@@ -5,3 +5,8 @@ obj/
 *.suo
 TestResults/
 publish/
+.env
+.env.*
+*.pfx
+*.snk
+secrets.json
